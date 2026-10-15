@@ -1,0 +1,65 @@
+# Competition datasets: keep only the small reference files in data/.
+/data/*
+!/data/feature_definitions.csv
+!/data/sample_submission.csv
+
+# Dataset formats and download archives, including copies outside data/.
+*.parquet
+*.parq
+*.feather
+*.arrow
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.zip
+*.7z
+*.rar
+*.tar
+*.gz
+*.bz2
+*.xz
+
+# Generated models, per-application predictions, and build output.
+/artifacts/
+/.dist/
+/dist/
+/build/
+*.egg-info/
+*.joblib
+*.pkl
+*.pickle
+*_predictions.csv
+predictions*.csv
+
+# Python environments and caches.
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Jupyter temporary files.
+.ipynb_checkpoints/
+.jupyter_cache/
+
+# Local secrets and Kaggle API credentials.
+.env
+.env.*
+!.env.example
+!.env.template
+kaggle.json
+.kaggle/
+
+# Local editor, operating-system, and log files.
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log

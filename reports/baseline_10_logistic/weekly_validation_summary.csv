@@ -1,0 +1,10 @@
+,value
+mean_weekly_gini,0.21460127985559269
+standard_deviation_weekly_gini,0.09519231872844985
+minimum_weekly_gini,-0.044420753375977284
+maximum_weekly_gini,0.39396961063627733
+weekly_gini_slope,0.0013324448323958015
+gini_residual_standard_deviation,0.09488174317515176
+development_stability_metric,0.1671604082680168
+weeks_with_negative_gini,1.0
+mean_absolute_weekly_calibration_gap,0.011231267925635544
