@@ -1,0 +1,11 @@
+feature,training_median_used_for_imputation,training_missing_percent,indicator_created
+credamount_770A,33998.0,0.0,False
+annuity_780A,3000.0,0.0,False
+maininc_215A,40000.0,33.977471125908956,True
+applications30d_658L,0.0,0.0,False
+numactivecreds_622L,0.0,0.0,False
+totaldebt_9A,0.0,0.0001876311659119203,True
+avgdbddpdlast24m_3658932P,-5.0,42.379219473112926,True
+avgdpdtolclosure24_3658938P,0.0,32.722124810375256,True
+clientscnt12m_3712952L,0.0,0.0,False
+price_1097A,24800.0,13.173959421007748,True
