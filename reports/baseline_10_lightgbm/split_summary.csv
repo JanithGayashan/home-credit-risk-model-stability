@@ -1,0 +1,3 @@
+split,first_week,last_week,rows,defaults,default_rate
+training,0,51,1065921,32929,0.03089253331156812
+validation,52,71,248535,10409,0.04188142515138713

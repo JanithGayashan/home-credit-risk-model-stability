@@ -25,12 +25,15 @@ application. `target = 1` means default and `target = 0` means non-default.
 ## Current progress
 
 The repository contains data exploration, feature-quality audits, preprocessing,
-and a first end-to-end modeling baseline. The current model uses ten numerical
-features from `static_0`, joined to the base table by `case_id`.
+and a comparison of logistic regression with LightGBM. Both models use the same
+ten numerical source features from `static_0`, joined to the base table by
+`case_id`, and the same chronological training and validation cohorts.
 
-Logistic regression is the first benchmark, rather than the final model choice.
-A separate NumPy implementation exposes the training mathematics for learning.
-Additional features, historical tables, and model families are planned.
+Logistic regression establishes an interpretable benchmark. LightGBM tests
+whether boosted decision trees improve predictions using those same features.
+A separate NumPy implementation exposes logistic-regression training mathematics
+for learning. Additional features, historical tables, and model families are
+planned.
 
 This is an active development and learning project. The locked holdout has not
 been used for final evaluation, and a production scoring service is not yet
@@ -72,8 +75,9 @@ require loading the complete competition dataset into memory.
 
 ## Run locally
 
-The current local environment uses Python 3.12.7. Dependencies are installed
-directly below; a pinned dependency manifest has not yet been added.
+The notebooks have been executed with Python 3.12.7. The top-level dependency
+versions used for this run, including LightGBM 4.7.0, are pinned in
+[`requirements.txt`](requirements.txt). Use Python 3.12 for this environment.
 
 Clone the repository:
 
@@ -88,7 +92,7 @@ Windows PowerShell and do not require activating the environment:
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install jupyterlab ipykernel nbformat numpy pandas pyarrow matplotlib scipy scikit-learn joblib
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m jupyter lab
 ```
 
@@ -106,8 +110,9 @@ from the repository root or its `notebooks/` directory.
 ## Notebook guide
 
 For the shortest path to a working model, start with `01`, then `02`, then `05a`.
-The other notebooks provide deeper exploration, diagnostics, or mathematical
-explanations. Each modeling notebook loads its own data.
+Continue with `07` to compare the logistic baseline with LightGBM. The other
+notebooks provide deeper exploration, diagnostics, or mathematical explanations.
+Each modeling notebook loads its own data.
 
 | Notebook | Purpose |
 | --- | --- |
@@ -120,6 +125,7 @@ explanations. Each modeling notebook loads its own data.
 | [05b - Logistic regression from scratch](notebooks/05b_logistic_regression_from_scratch.ipynb) | Study sigmoid, log loss, gradients, and coefficient updates using NumPy. |
 | [05 - Full baseline evaluation](notebooks/05_train_first_logistic_baseline.ipynb) | Evaluate ranking, probability quality, calibration, risk groups, and weekly stability. |
 | [06 - Individual feature study](notebooks/06_study_10_features_step_by_step.ipynb) | Study features incrementally; currently includes credit-amount missingness and distribution analysis. |
+| [07 - LightGBM comparison](notebooks/07_train_lightgbm_baseline.ipynb) | Refit logistic regression and train LightGBM on the same ten features; compare probabilities, calibration, and weekly stability. |
 
 The NumPy learning notebook samples 100,000 training applications and 50,000
 validation applications. Its results are separate from the full-data baseline
@@ -138,7 +144,7 @@ Applications are split chronologically to measure performance on later periods:
 The holdout comes from labeled training data. Kaggle's separate test files do not
 contain targets and are used for competition submissions.
 
-The full baseline pipeline is:
+The logistic regression pipeline is:
 
 ```text
 10 numerical features
@@ -148,37 +154,59 @@ The full baseline pipeline is:
     -> default probability
 ```
 
-Five missing indicators bring the full baseline to 15 prepared inputs. The
-smaller NumPy training sample creates four indicators and therefore has 14.
-`case_id`, `WEEK_NUM`, and `target` are excluded from model inputs. Preprocessing
-is fitted on training rows and reused on later rows.
+Five missing indicators bring the full logistic baseline to 15 prepared inputs.
+The smaller NumPy training sample creates four indicators and therefore has 14.
+Preprocessing is fitted on training rows and reused on later rows.
+
+LightGBM receives the ten numerical source features directly. It uses native
+`NaN` handling, preserves genuine zeros, and does not need numerical scaling for
+this experiment. A fixed conservative configuration is trained with at most
+1,500 trees; validation log loss selects the tree count through early stopping
+with a patience of 75 rounds. No class reweighting or oversampling is applied.
+
+`case_id`, `WEEK_NUM`, and `target` are excluded from both models' inputs. Because
+the validation set also selects the LightGBM tree count, its metrics are
+development estimates and must not replace the final locked-holdout evaluation.
 
 Evaluation includes ROC AUC and Gini for ranking, average precision for the rare
 default class, log loss and Brier score for probability quality, calibration
 plots, and weekly performance. A constant predictor using the training default
 rate provides a simple comparison.
 
-## Initial baseline results
+## Development model comparison
 
-Saved results for the full ten-feature logistic baseline on development
-validation weeks 52-71:
+Executed results for the same ten source features and 248,535 development
+validation applications from weeks 52-71:
 
-| Metric | Constant baseline | Logistic regression |
-| --- | ---: | ---: |
-| ROC AUC | 0.5000 | 0.6085 |
-| Gini | 0.0000 | 0.2169 |
-| Average precision | 0.0419 | 0.0723 |
-| Log loss, lower is better | 0.17570 | 0.17244 |
-| Brier score, lower is better | 0.04025 | 0.04006 |
+| Metric | Constant baseline | Logistic regression | LightGBM |
+| --- | ---: | ---: | ---: |
+| ROC AUC | 0.5000 | 0.6085 | 0.7262 |
+| Gini | 0.0000 | 0.2169 | 0.4523 |
+| Average precision | 0.0419 | 0.0723 | 0.1256 |
+| Log loss, lower is better | 0.17570 | 0.17244 | 0.16031 |
+| Brier score, lower is better | 0.04025 | 0.04006 | 0.03867 |
 
-The logistic model's average prediction is 3.17%, compared with an observed
-default rate of 4.19%. It learns some useful ranking information but
-underestimates overall risk in this later period. These are development
-validation results, not locked-holdout results or a Kaggle leaderboard score.
+LightGBM selected 674 trees through validation-based early stopping. It improves
+ranking and probability loss, with higher Gini in all 20 validation weeks.
+Weekly Gini standard deviation decreased from 0.0952 to 0.0663 in this comparison.
+These results support further development, rather than proving future stability.
 
-See [the saved metrics](reports/baseline_10_logistic/performance_metrics.csv) and
-[the baseline notebook](notebooks/05_train_first_logistic_baseline.ipynb) for
-details.
+Calibration still needs work: LightGBM's average prediction is 3.32%, compared
+with the observed default rate of 4.19%; logistic regression predicts 3.17% on
+average. Both models underestimate aggregate risk, and weekly calibration gaps
+remain visible. No probability recalibration was fitted in this experiment.
+
+These are development validation results, not locked-holdout results or a Kaggle
+leaderboard score. Validation was also used to select the LightGBM tree count.
+
+![Validation ranking and calibration comparison](reports/baseline_10_lightgbm/ranking_and_calibration.png)
+
+See the [comparison metrics](reports/baseline_10_lightgbm/performance_metrics.csv),
+[weekly summary](reports/baseline_10_lightgbm/weekly_validation_summary.csv),
+[run manifest](reports/baseline_10_lightgbm/run_manifest.json), and
+[executed comparison notebook](notebooks/07_train_lightgbm_baseline.ipynb).
+The [original logistic results](reports/baseline_10_logistic/performance_metrics.csv)
+remain available for reference.
 
 ## Repository structure
 
@@ -187,6 +215,7 @@ notebooks/        Exploration, preprocessing, modeling, and learning notebooks
 reports/          Feature catalogs, summary metrics, and figures
 data/             Small tracked reference files and ignored local datasets
 artifacts/        Locally generated trained models, ignored by Git
+requirements.txt  Pinned top-level Python dependencies
 CONTRIBUTING.md   Branch, pull-request, and review workflow
 ```
 
@@ -194,7 +223,7 @@ CONTRIBUTING.md   Branch, pull-request, and review workflow
 
 - Compare broader static feature sets and engineered nonlinear features.
 - Add aggregated features from historical tables.
-- Compare tree-based models with the initial benchmark.
+- Compare additional model families and use more time-based development splits.
 - Improve calibration and evaluate stability across additional time periods.
 - Freeze the selected approach, evaluate the locked holdout, and build a
   repeatable scoring pipeline with monitoring.

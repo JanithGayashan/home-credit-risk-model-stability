@@ -1,0 +1,89 @@
+{
+  "experiment": "10-feature LightGBM versus logistic regression",
+  "python_version": "3.12.7",
+  "package_versions": {
+    "lightgbm": "4.7.0",
+    "numpy": "1.26.4",
+    "pandas": "2.2.2",
+    "pyarrow": "16.1.0",
+    "scipy": "1.13.1",
+    "scikit-learn": "1.6.1",
+    "joblib": "1.4.2"
+  },
+  "source_features": [
+    "credamount_770A",
+    "annuity_780A",
+    "maininc_215A",
+    "applications30d_658L",
+    "numactivecreds_622L",
+    "totaldebt_9A",
+    "avgdbddpdlast24m_3658932P",
+    "avgdpdtolclosure24_3658938P",
+    "clientscnt12m_3712952L",
+    "price_1097A"
+  ],
+  "training_weeks": [
+    0,
+    51
+  ],
+  "validation_weeks": [
+    52,
+    71
+  ],
+  "locked_holdout_weeks": [
+    72,
+    91
+  ],
+  "holdout_evaluated": false,
+  "training_case_ids_sha256": "5e923acbb10da2f24fdcd535ef301561bdccd2b25f65c43242716319f379c361",
+  "validation_case_ids_sha256": "07e42fc9d0cbd6289d2c519aefcdd0f260e0775cbe245ec751c86f820416b723",
+  "lightgbm_parameters": {
+    "objective": "binary",
+    "metric": "binary_logloss",
+    "boosting_type": "gbdt",
+    "n_estimators": 1500,
+    "learning_rate": 0.05,
+    "num_leaves": 15,
+    "max_depth": 5,
+    "min_child_samples": 200,
+    "reg_lambda": 5.0,
+    "subsample": 0.8,
+    "subsample_freq": 1,
+    "colsample_bytree": 0.9,
+    "zero_as_missing": false,
+    "random_state": 42,
+    "n_jobs": 4,
+    "deterministic": true,
+    "force_col_wise": true,
+    "verbosity": -1
+  },
+  "logistic_parameters": {
+    "max_iter": 500,
+    "solver": "lbfgs",
+    "class_weight": null,
+    "random_state": 42,
+    "C": 1.0,
+    "preprocessing": "training-median imputation, missing indicators, StandardScaler"
+  },
+  "early_stopping_metric": "validation binary_logloss",
+  "early_stopping_rounds": 75,
+  "best_iteration": 674,
+  "fit_seconds": {
+    "logistic_regression": 4.018692700017709,
+    "lightgbm": 48.50408470002003
+  },
+  "source_files": {
+    "train_base.parquet": {
+      "bytes": 7048047,
+      "sha256": "29d94662545eece908f20e44e6592336c9c40916dcfdad7735de92b8e9edf908"
+    },
+    "train_static_0_0.parquet": {
+      "bytes": 113858592,
+      "sha256": "c993192e68853259183babe05870b173b2695799c9ea56a7824ee6cf6b083366"
+    },
+    "train_static_0_1.parquet": {
+      "bytes": 74691173,
+      "sha256": "78adb27582754d3c986b692dbe6ca03ef43806d5265e65d9f460eef8554d3d2d"
+    }
+  }
+}
